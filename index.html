@@ -1,5 +1,250 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>System Design from Zero</title>
-<style>body{margin:0;background:#f7f8fa;color:#141a26;font:17px/1.6 -apple-system,"Helvetica Neue",Arial,sans-serif}main{max-width:680px;margin:0 auto;padding:40px 16px}h1{margin:0 0 8px}a{color:#1d3fcc}li{margin:6px 0}</style></head><body><main>
-<h1>System Design from Zero</h1><p>Study pages with a quiz, one for each post of the LinkedIn series by <a href="https://www.linkedin.com/in/pratham-gupta-4a9798244/">Pratham Gupta</a>.</p>
-<ul><li><a href="01-what-is-system-design/">Post 1: What is system design?</a></li></ul>
-</main></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>System Design from Zero</title><meta name="description" content="Plain-language system design, one post at a time. Each post has a study page with a quiz."><meta property="og:title" content="System Design from Zero"><meta property="og:description" content="Plain-language system design, one post at a time. Each post has a study page with a quiz."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=JetBrains+Mono:wght@400;500&family=Schibsted+Grotesk:ital,wght@0,400..700;1,400..700&display=swap"><style>/* Study page and site index. Direction: a calm reading surface with a sticky contents rail, a blue-tinted neutral, one brand blue,
+   a highlight yellow used only for the summary and callouts. Light and dark both designed. Brand colours come from profile.md. */
+:root{
+  --bg:#f5f6fb; --surface:#ffffff; --surface-2:#eef0f8; --fg:#121828; --muted:#566077; --line:#e0e4ee;
+  --accent:#1d3fcc; --accent-ink:#ffffff; --accent-soft:#e8ecfd; --mark:#ffe49b; --mark-soft:#fff3cf;
+  --ok:#17773f; --ok-soft:#e1f4e8; --no:#b8321f; --no-soft:#fbe6e2; --code-bg:#eceffa;
+  --shadow:0 1px 2px rgba(18,24,40,.05),0 8px 24px -12px rgba(18,24,40,.12);
+  --font-display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --font-body:"Schibsted Grotesk","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --bar:56px; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c1120; --surface:#141b2e; --surface-2:#1a2238; --fg:#e8ebf6; --muted:#9ba5bf; --line:#263049;
+  --accent:#8ea4ff; --accent-ink:#0c1120; --accent-soft:#1b2652; --mark:#ffe49b; --mark-soft:#2a2717;
+  --ok:#52c98a; --ok-soft:#14301f; --no:#ff8f7e; --no-soft:#3a1d19; --code-bg:#1b2340;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -12px rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1120; --surface:#141b2e; --surface-2:#1a2238; --fg:#e8ebf6; --muted:#9ba5bf; --line:#263049;
+  --accent:#8ea4ff; --accent-ink:#0c1120; --accent-soft:#1b2652; --mark:#ffe49b; --mark-soft:#2a2717;
+  --ok:#52c98a; --ok-soft:#14301f; --no:#ff8f7e; --no-soft:#3a1d19; --code-bg:#1b2340;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -12px rgba(0,0,0,.5); color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--bar) + 64px);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 17.5px/1.7 var(--font-body);-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* top bar + reading progress */
+.bar{position:sticky;top:0;z-index:20;height:var(--bar);display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));
+  background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px);
+  border-bottom:1px solid var(--line)}
+.brand{font:700 .95rem var(--font-display);letter-spacing:-.01em;color:var(--fg);text-decoration:none;display:flex;align-items:center;gap:9px;min-width:0}
+.brand i{width:10px;height:10px;border-radius:3px;background:var(--accent);flex:none}
+.brand span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tbtn{font:500 .85rem var(--font-body);color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 13px;cursor:pointer}
+.tbtn:hover{border-color:var(--accent)}
+.progress{position:absolute;left:0;bottom:-1px;height:3px;width:100%;transform-origin:0 50%;transform:scaleX(0);background:var(--accent)}
+
+/* page frame */
+.shell{display:grid;grid-template-columns:minmax(0,1fr);padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:0 72px}
+.toc{position:sticky;top:var(--bar);z-index:10;margin-inline:calc(-1*max(16px,env(safe-area-inset-left,0px)));padding:10px max(16px,env(safe-area-inset-left,0px));
+  display:flex;gap:8px;overflow-x:auto;background:var(--bg);border-bottom:1px solid var(--line);scrollbar-width:none}
+.toc::-webkit-scrollbar{display:none}
+.toc b{display:none}
+.toc a{flex:none;font-size:.86rem;font-weight:500;color:var(--muted);text-decoration:none;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
+.toc a.on{color:var(--accent-ink);background:var(--accent);border-color:var(--accent)}
+article{min-width:0;max-width:700px;width:100%;margin-inline:auto}
+@media (min-width:1060px){
+  .shell{grid-template-columns:220px minmax(0,700px);justify-content:center;column-gap:64px}
+  .toc{top:calc(var(--bar) + 40px);align-self:start;flex-direction:column;gap:2px;overflow:visible;margin:0;padding:0;background:none;border:0;max-height:calc(100vh - var(--bar) - 80px);overflow-y:auto}
+  .toc b{display:block;font:600 .72rem var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px 12px}
+  .toc a{border:0;background:none;border-radius:8px;padding:6px 12px;line-height:1.35;font-size:.9rem}
+  .toc a:hover{background:var(--surface-2);color:var(--fg)}
+  .toc a.on{background:var(--accent-soft);color:var(--accent)}
+}
+
+/* hero */
+.hero{padding-block:44px 8px}
+.eyebrow{font:600 .78rem var(--font-body);letter-spacing:.09em;text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+h1{font:700 clamp(2.2rem,6.2vw,3.5rem)/1.04 var(--font-display);letter-spacing:-.025em;margin:0 0 18px;text-wrap:balance}
+.lede{font-size:1.1rem;color:var(--muted);margin:0 0 20px;max-width:56ch}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0}
+.chips span{font-size:.82rem;font-weight:500;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 12px}
+
+/* text */
+section{margin-top:3.2rem}
+h2{font:700 clamp(1.5rem,3.4vw,1.9rem)/1.15 var(--font-display);letter-spacing:-.015em;margin:0 0 1rem;text-wrap:balance}
+h3{font:700 1.1rem/1.3 var(--font-display);margin:2rem 0 .4rem;color:var(--fg)}
+p{margin:0 0 1rem}
+ul,ol{margin:0 0 1.1rem;padding-left:1.3rem}
+li{margin-bottom:.45rem}
+li::marker{color:var(--accent)}
+strong{font-weight:650}
+code{font:500 .86em var(--font-mono);background:var(--code-bg);padding:2px 6px;border-radius:5px}
+pre{font:400 .85rem/1.55 var(--font-mono);background:var(--code-bg);padding:14px 16px;border-radius:12px;overflow-x:auto;margin:0 0 1.2rem}
+.tw{overflow-x:auto;margin:0 0 1.2rem;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:.92rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;vertical-align:top;padding:10px 14px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+th{font:600 .72rem var(--font-body);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--surface-2);white-space:nowrap}
+.callout{background:var(--mark-soft);border:1px solid color-mix(in srgb,var(--mark) 55%,transparent);border-radius:14px;padding:16px 20px;margin:0 0 1.2rem;font-size:1.02rem}
+.pb{display:none}
+
+/* "In one minute" summary */
+.tldr{background:var(--mark-soft);border:1px solid color-mix(in srgb,var(--mark) 60%,transparent);border-radius:18px;padding:22px 24px 8px;margin-top:2.2rem}
+.tldr h2{font-size:1rem;letter-spacing:.06em;text-transform:uppercase;font-family:var(--font-body);font-weight:700;margin-bottom:.7rem}
+
+/* figures */
+figure{margin:1.6rem 0 1.8rem}
+figure .img{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow);overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin-inline:auto}
+figcaption{font-size:.88rem;color:var(--muted);margin:10px 4px 0;line-height:1.5}
+
+/* quiz */
+.qhead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 14px}
+.qintro{color:var(--muted);margin:0 0 14px}
+.dots{display:flex;gap:6px;align-items:center}
+.dots i{width:12px;height:12px;border-radius:50%;border:2px solid var(--line);background:var(--surface);transition:background .2s,border-color .2s}
+.dots i.ok{background:var(--ok);border-color:var(--ok)}
+.dots i.no{background:var(--no);border-color:var(--no)}
+.score{font:600 .9rem var(--font-body);color:var(--muted);font-variant-numeric:tabular-nums}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px 22px;margin:0 0 14px;box-shadow:var(--shadow)}
+.q[data-r="ok"]{border-color:color-mix(in srgb,var(--ok) 55%,var(--line))}
+.q[data-r="no"]{border-color:color-mix(in srgb,var(--no) 55%,var(--line))}
+.qt{display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;margin:0 0 14px;font-weight:500}
+.qn{width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font:700 .95rem var(--font-display)}
+.q textarea{width:100%;min-height:76px;font:400 .98rem/1.5 var(--font-body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;resize:vertical}
+.q textarea::placeholder{color:var(--muted)}
+.btn{font:600 .92rem var(--font-body);border-radius:10px;padding:9px 16px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:hover{filter:brightness(1.06)}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+.ans{display:none;margin-top:14px;background:var(--accent-soft);border-radius:12px;padding:14px 16px}
+.ans.open{display:block}
+.ans p{margin:0}
+.ans .label{font:700 .72rem var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 6px}
+.mark{margin-top:14px;padding-top:12px;border-top:1px solid color-mix(in srgb,var(--accent) 25%,transparent)}
+.mark .ask{font-weight:600;font-size:.92rem;margin-right:6px}
+.btn.alt.on.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.alt.on.no{background:var(--no);border-color:var(--no);color:#fff}
+.result{display:none;border:1px solid var(--line);background:var(--surface);border-radius:18px;padding:22px 24px;margin-top:18px;box-shadow:var(--shadow)}
+.result.show{display:block}
+.result b{font:700 1.5rem var(--font-display);display:block;margin-bottom:4px}
+.result p{color:var(--muted);margin:0 0 12px}
+
+/* footer + index */
+footer{margin-top:4rem;padding-top:1.4rem;border-top:1px solid var(--line);color:var(--muted);font-size:.92rem;display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:space-between}
+.posts{list-style:none;padding:0;margin:1.6rem 0 0;display:grid;gap:12px}
+.posts a{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;align-items:center;text-decoration:none;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow)}
+.posts a:hover{border-color:var(--accent)}
+.posts .n{width:44px;height:44px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font:700 1.05rem var(--font-display)}
+.posts strong{font:700 1.05rem var(--font-display);display:block}
+.posts small{color:var(--muted);font-size:.88rem}
+
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+@media print{.bar,.toc,.qhead .dots,.tbtn,.row,.btn{display:none!important}.ans{display:block!important}body{background:#fff;color:#000}}
+</style></head><body><header class="bar"><a class="brand" href="./"><i></i><span>System Design from Zero</span></a><button class="tbtn" id="theme" type="button" aria-label="Switch between light and dark mode">Dark mode</button></header><div class="shell"><article><header class="hero"><p class="eyebrow">A LinkedIn series</p><h1>System Design from Zero</h1><p class="lede">Plain-language system design, one post at a time. Each post has a study page with a quiz. Written by <a href="https://www.linkedin.com/in/pratham-gupta-4a9798244/">Pratham Gupta</a>.</p></header><ul class="posts"><li><a href="01-what-is-system-design/"><span class="n">1</span><span><strong>What is system design?</strong><small>Study page and quiz</small></span></a></li></ul><footer><span>System Design from Zero · by <a href="https://www.linkedin.com/in/pratham-gupta-4a9798244/">Pratham Gupta</a></span></footer></article></div><script>(function () {
+  var root = document.documentElement;
+  function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  /* theme toggle: system by default, explicit choice remembered */
+  var tbtn = document.getElementById('theme');
+  function isDark() {
+    var t = root.getAttribute('data-theme');
+    if (t) return t === 'dark';
+    return window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  var saved = get('sdz-theme');
+  if (saved === 'dark' || saved === 'light') root.setAttribute('data-theme', saved);
+  function label() { if (tbtn) tbtn.textContent = isDark() ? 'Light mode' : 'Dark mode'; }
+  label();
+  if (tbtn) tbtn.addEventListener('click', function () {
+    var next = isDark() ? 'light' : 'dark';
+    root.setAttribute('data-theme', next); set('sdz-theme', next); label();
+  });
+
+  /* reading progress */
+  var prog = document.querySelector('.progress');
+  function onScroll() {
+    if (!prog) return;
+    var h = document.documentElement.scrollHeight - innerHeight;
+    prog.style.transform = 'scaleX(' + (h > 0 ? Math.min(1, scrollY / h) : 0) + ')';
+  }
+  addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  /* contents: highlight the section being read */
+  var links = [].slice.call(document.querySelectorAll('.toc a'));
+  var secs = links.map(function (a) { return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+  function spy() {
+    var cur = secs[0], y = innerHeight * 0.3;
+    secs.forEach(function (s) { if (s.getBoundingClientRect().top <= y) cur = s; });
+    links.forEach(function (a) {
+      var on = cur && a.getAttribute('href') === '#' + cur.id;
+      a.classList.toggle('on', on);
+      if (on && a.scrollIntoView && getComputedStyle(a.parentNode).overflowX === 'auto') {
+        var p = a.parentNode; p.scrollLeft = a.offsetLeft - 16;
+      }
+    });
+  }
+  addEventListener('scroll', spy, { passive: true }); spy();
+
+  /* quiz */
+  var cards = [].slice.call(document.querySelectorAll('.q'));
+  if (!cards.length) return;
+  var key = 'sdz-quiz:' + location.pathname;
+  var state = {};
+  try { state = JSON.parse(get(key) || '{}'); } catch (e) { state = {}; }
+  var dots = [].slice.call(document.querySelectorAll('.dots i'));
+  var score = document.getElementById('score');
+  var result = document.getElementById('result');
+  function save() { set(key, JSON.stringify(state)); }
+  function update() {
+    var ok = 0, done = 0;
+    cards.forEach(function (c, i) {
+      var r = c.getAttribute('data-r') || '';
+      if (r) { done++; if (r === 'ok') ok++; }
+      dots[i].className = r;
+    });
+    score.textContent = ok + ' of ' + cards.length + ' got it';
+    if (done === cards.length) {
+      var msg = ok === cards.length ? 'Every one. You can explain this to someone else now.'
+        : ok >= cards.length - 2 ? 'Nearly there. Read the sections behind the ones marked Not yet, then try them again.'
+        : 'Read the sections behind the ones marked Not yet, then try them again. Going slowly here pays off later.';
+      result.querySelector('b').textContent = 'You got ' + ok + ' of ' + cards.length;
+      result.querySelector('p').textContent = msg;
+      result.classList.add('show');
+    } else { result.classList.remove('show'); }
+  }
+  cards.forEach(function (c, i) {
+    var ans = c.querySelector('.ans'), show = c.querySelector('.show'), ta = c.querySelector('textarea');
+    var s = state[i] || {};
+    if (s.t) ta.value = s.t;
+    if (s.r) {
+      c.setAttribute('data-r', s.r);
+      var b = c.querySelector('.alt[data-v="' + s.r + '"]'); if (b) b.classList.add('on');
+    }
+    ta.addEventListener('input', function () { state[i] = state[i] || {}; state[i].t = ta.value; save(); });
+    show.addEventListener('click', function () {
+      var open = ans.classList.toggle('open');
+      show.textContent = open ? 'Hide answer' : 'Show answer';
+      show.setAttribute('aria-expanded', open);
+    });
+    [].slice.call(c.querySelectorAll('.alt')).forEach(function (b) {
+      b.addEventListener('click', function () {
+        var r = b.getAttribute('data-v');
+        c.setAttribute('data-r', r);
+        [].slice.call(c.querySelectorAll('.alt')).forEach(function (x) { x.classList.toggle('on', x === b); });
+        state[i] = state[i] || {}; state[i].r = r; save(); update();
+      });
+    });
+  });
+  var reset = document.getElementById('reset');
+  if (reset) reset.addEventListener('click', function () {
+    state = {}; save();
+    cards.forEach(function (c) {
+      c.removeAttribute('data-r'); c.querySelector('textarea').value = '';
+      c.querySelector('.ans').classList.remove('open');
+      var sh = c.querySelector('.show'); sh.textContent = 'Show answer'; sh.setAttribute('aria-expanded', 'false');
+      [].slice.call(c.querySelectorAll('.alt')).forEach(function (x) { x.classList.remove('on'); });
+    });
+    update();
+    document.getElementById('quiz').scrollIntoView();
+  });
+  update();
+})();
+</script></body></html>

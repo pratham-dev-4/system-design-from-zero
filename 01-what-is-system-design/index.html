@@ -1,62 +1,160 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Post 1: What is system design? · System Design from Zero</title><meta name="description" content="An app has three kinds of parts. Phones and browsers ask for things. Servers run your code and answer. A database keeps the data on a disk, so it survives a power cut."><style>
-:root{--fg:#141a26;--muted:#5b6475;--line:#dfe3ec;--accent:#1d3fcc;--soft:#eef1fd;--mark:#fff1c4;--ok:#1e8449;--no:#c0392b;--bg:#f7f8fa}
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>What is system design? · System Design from Zero</title><meta name="description" content="An app has three kinds of parts. Phones and browsers ask for things. Servers run your code and answer. A database keeps the data on a disk, so it survives a power cut."><meta property="og:title" content="What is system design? · System Design from Zero"><meta property="og:description" content="An app has three kinds of parts. Phones and browsers ask for things. Servers run your code and answer. A database keeps the data on a disk, so it survives a power cut."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=JetBrains+Mono:wght@400;500&family=Schibsted+Grotesk:ital,wght@0,400..700;1,400..700&display=swap"><style>/* Study page and site index. Direction: a calm reading surface with a sticky contents rail, a blue-tinted neutral, one brand blue,
+   a highlight yellow used only for the summary and callouts. Light and dark both designed. Brand colours come from profile.md. */
+:root{
+  --bg:#f5f6fb; --surface:#ffffff; --surface-2:#eef0f8; --fg:#121828; --muted:#566077; --line:#e0e4ee;
+  --accent:#1d3fcc; --accent-ink:#ffffff; --accent-soft:#e8ecfd; --mark:#ffe49b; --mark-soft:#fff3cf;
+  --ok:#17773f; --ok-soft:#e1f4e8; --no:#b8321f; --no-soft:#fbe6e2; --code-bg:#eceffa;
+  --shadow:0 1px 2px rgba(18,24,40,.05),0 8px 24px -12px rgba(18,24,40,.12);
+  --font-display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --font-body:"Schibsted Grotesk","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --bar:56px; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c1120; --surface:#141b2e; --surface-2:#1a2238; --fg:#e8ebf6; --muted:#9ba5bf; --line:#263049;
+  --accent:#8ea4ff; --accent-ink:#0c1120; --accent-soft:#1b2652; --mark:#ffe49b; --mark-soft:#2a2717;
+  --ok:#52c98a; --ok-soft:#14301f; --no:#ff8f7e; --no-soft:#3a1d19; --code-bg:#1b2340;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -12px rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1120; --surface:#141b2e; --surface-2:#1a2238; --fg:#e8ebf6; --muted:#9ba5bf; --line:#263049;
+  --accent:#8ea4ff; --accent-ink:#0c1120; --accent-soft:#1b2652; --mark:#ffe49b; --mark-soft:#2a2717;
+  --ok:#52c98a; --ok-soft:#14301f; --no:#ff8f7e; --no-soft:#3a1d19; --code-bg:#1b2340;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -12px rgba(0,0,0,.5); color-scheme:dark}
+
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,"Helvetica Neue",Helvetica,Arial,sans-serif}
-main{max-width:720px;margin:0 auto;padding:28px 16px 64px}
-h1{font-size:2rem;line-height:1.15;letter-spacing:-.01em;margin:0 0 6px}
-h1+p{color:var(--muted);margin-top:0}
-.eyebrow{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:0 0 8px}
-h2{font-size:1.35rem;color:var(--accent);margin:2.2rem 0 .6rem;padding-bottom:.25rem;border-bottom:2px solid var(--accent)}
-h3{font-size:1.08rem;margin:1.4rem 0 .3rem}
-p{margin:0 0 .9rem}
-ul,ol{margin:0 0 1rem;padding-left:1.3rem}
-li{margin-bottom:.35rem}
-code{font:.88em Menlo,monospace;background:var(--soft);padding:1px 4px;border-radius:3px}
-pre{font:.85rem/1.5 Menlo,monospace;background:var(--soft);padding:12px 14px;border-radius:8px;overflow-x:auto}
-table{width:100%;border-collapse:collapse;margin:0 0 1rem;font-size:.92rem;display:block;overflow-x:auto}
-th,td{text-align:left;vertical-align:top;padding:7px 9px;border-bottom:1px solid var(--line)}
-th{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-.callout{background:var(--mark);border-radius:8px;padding:12px 15px;margin:0 0 1rem}
-figure{margin:1rem 0 1.4rem;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
-figure img{max-width:100%;height:auto}
-figcaption{font-size:.85rem;color:var(--muted);margin-top:6px}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--bar) + 64px);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 17.5px/1.7 var(--font-body);-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* top bar + reading progress */
+.bar{position:sticky;top:0;z-index:20;height:var(--bar);display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));
+  background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px);
+  border-bottom:1px solid var(--line)}
+.brand{font:700 .95rem var(--font-display);letter-spacing:-.01em;color:var(--fg);text-decoration:none;display:flex;align-items:center;gap:9px;min-width:0}
+.brand i{width:10px;height:10px;border-radius:3px;background:var(--accent);flex:none}
+.brand span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tbtn{font:500 .85rem var(--font-body);color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 13px;cursor:pointer}
+.tbtn:hover{border-color:var(--accent)}
+.progress{position:absolute;left:0;bottom:-1px;height:3px;width:100%;transform-origin:0 50%;transform:scaleX(0);background:var(--accent)}
+
+/* page frame */
+.shell{display:grid;grid-template-columns:minmax(0,1fr);padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:0 72px}
+.toc{position:sticky;top:var(--bar);z-index:10;margin-inline:calc(-1*max(16px,env(safe-area-inset-left,0px)));padding:10px max(16px,env(safe-area-inset-left,0px));
+  display:flex;gap:8px;overflow-x:auto;background:var(--bg);border-bottom:1px solid var(--line);scrollbar-width:none}
+.toc::-webkit-scrollbar{display:none}
+.toc b{display:none}
+.toc a{flex:none;font-size:.86rem;font-weight:500;color:var(--muted);text-decoration:none;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
+.toc a.on{color:var(--accent-ink);background:var(--accent);border-color:var(--accent)}
+article{min-width:0;max-width:700px;width:100%;margin-inline:auto}
+@media (min-width:1060px){
+  .shell{grid-template-columns:220px minmax(0,700px);justify-content:center;column-gap:64px}
+  .toc{top:calc(var(--bar) + 40px);align-self:start;flex-direction:column;gap:2px;overflow:visible;margin:0;padding:0;background:none;border:0;max-height:calc(100vh - var(--bar) - 80px);overflow-y:auto}
+  .toc b{display:block;font:600 .72rem var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px 12px}
+  .toc a{border:0;background:none;border-radius:8px;padding:6px 12px;line-height:1.35;font-size:.9rem}
+  .toc a:hover{background:var(--surface-2);color:var(--fg)}
+  .toc a.on{background:var(--accent-soft);color:var(--accent)}
+}
+
+/* hero */
+.hero{padding-block:44px 8px}
+.eyebrow{font:600 .78rem var(--font-body);letter-spacing:.09em;text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+h1{font:700 clamp(2.2rem,6.2vw,3.5rem)/1.04 var(--font-display);letter-spacing:-.025em;margin:0 0 18px;text-wrap:balance}
+.lede{font-size:1.1rem;color:var(--muted);margin:0 0 20px;max-width:56ch}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0}
+.chips span{font-size:.82rem;font-weight:500;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 12px}
+
+/* text */
+section{margin-top:3.2rem}
+h2{font:700 clamp(1.5rem,3.4vw,1.9rem)/1.15 var(--font-display);letter-spacing:-.015em;margin:0 0 1rem;text-wrap:balance}
+h3{font:700 1.1rem/1.3 var(--font-display);margin:2rem 0 .4rem;color:var(--fg)}
+p{margin:0 0 1rem}
+ul,ol{margin:0 0 1.1rem;padding-left:1.3rem}
+li{margin-bottom:.45rem}
+li::marker{color:var(--accent)}
+strong{font-weight:650}
+code{font:500 .86em var(--font-mono);background:var(--code-bg);padding:2px 6px;border-radius:5px}
+pre{font:400 .85rem/1.55 var(--font-mono);background:var(--code-bg);padding:14px 16px;border-radius:12px;overflow-x:auto;margin:0 0 1.2rem}
+.tw{overflow-x:auto;margin:0 0 1.2rem;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:.92rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;vertical-align:top;padding:10px 14px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+th{font:600 .72rem var(--font-body);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--surface-2);white-space:nowrap}
+.callout{background:var(--mark-soft);border:1px solid color-mix(in srgb,var(--mark) 55%,transparent);border-radius:14px;padding:16px 20px;margin:0 0 1.2rem;font-size:1.02rem}
 .pb{display:none}
-nav.toc{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:1rem 0 1.6rem;font-size:.92rem}
-nav.toc b{display:block;margin-bottom:4px;color:var(--muted);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase}
-nav.toc a{color:var(--accent);text-decoration:none;display:inline-block;margin:2px 14px 2px 0}
-#quiz .score{position:sticky;top:0;background:var(--bg);padding:8px 0;font-weight:700;z-index:2}
-.q{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:0 0 14px}
-.q .qt{margin:0 0 10px}
-.q .qt b{color:var(--accent)}
-.q textarea{width:100%;min-height:70px;font:inherit;font-size:.95rem;padding:8px 10px;border:1px solid var(--line);border-radius:8px;resize:vertical;background:#fff;color:var(--fg)}
-.q button{font:inherit;font-size:.92rem;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:8px;padding:7px 14px;cursor:pointer;margin-top:8px}
-.q button.alt{background:#fff;color:var(--fg);border-color:var(--line)}
-.q button.alt.on.ok{background:var(--ok);border-color:var(--ok);color:#fff}
-.q button.alt.on.no{background:var(--no);border-color:var(--no);color:#fff}
-.q button:focus-visible,.q textarea:focus-visible{outline:3px solid var(--mark);outline-offset:1px}
-.ans{display:none;margin-top:12px;border-left:4px solid var(--accent);background:var(--soft);padding:10px 14px;border-radius:0 8px 8px 0}
+
+/* "In one minute" summary */
+.tldr{background:var(--mark-soft);border:1px solid color-mix(in srgb,var(--mark) 60%,transparent);border-radius:18px;padding:22px 24px 8px;margin-top:2.2rem}
+.tldr h2{font-size:1rem;letter-spacing:.06em;text-transform:uppercase;font-family:var(--font-body);font-weight:700;margin-bottom:.7rem}
+
+/* figures */
+figure{margin:1.6rem 0 1.8rem}
+figure .img{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow);overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin-inline:auto}
+figcaption{font-size:.88rem;color:var(--muted);margin:10px 4px 0;line-height:1.5}
+
+/* quiz */
+.qhead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 14px}
+.qintro{color:var(--muted);margin:0 0 14px}
+.dots{display:flex;gap:6px;align-items:center}
+.dots i{width:12px;height:12px;border-radius:50%;border:2px solid var(--line);background:var(--surface);transition:background .2s,border-color .2s}
+.dots i.ok{background:var(--ok);border-color:var(--ok)}
+.dots i.no{background:var(--no);border-color:var(--no)}
+.score{font:600 .9rem var(--font-body);color:var(--muted);font-variant-numeric:tabular-nums}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px 22px;margin:0 0 14px;box-shadow:var(--shadow)}
+.q[data-r="ok"]{border-color:color-mix(in srgb,var(--ok) 55%,var(--line))}
+.q[data-r="no"]{border-color:color-mix(in srgb,var(--no) 55%,var(--line))}
+.qt{display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;margin:0 0 14px;font-weight:500}
+.qn{width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font:700 .95rem var(--font-display)}
+.q textarea{width:100%;min-height:76px;font:400 .98rem/1.5 var(--font-body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;resize:vertical}
+.q textarea::placeholder{color:var(--muted)}
+.btn{font:600 .92rem var(--font-body);border-radius:10px;padding:9px 16px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:hover{filter:brightness(1.06)}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+.ans{display:none;margin-top:14px;background:var(--accent-soft);border-radius:12px;padding:14px 16px}
 .ans.open{display:block}
-.ans .mark{margin-top:8px}
-footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
-footer a{color:var(--accent)}
-@media(max-width:480px){body{font-size:16px}h1{font-size:1.7rem}}
-</style></head><body><main><p class="eyebrow">System Design from Zero</p><h1>Post 1: What is system design?</h1>
-<p>A study guide for anyone who can program but hasn't done system design. About 20 minutes. Quiz at the end, answers at the back.</p><nav class="toc"><b>On this page</b><a href="#s0">In one minute</a><a href="#s1">The problem</a><a href="#s2">The picture: a bank</a><a href="#s3">How it works</a><a href="#s4">Worked example: sizing the ticket app</a><a href="#s5">What it costs</a><a href="#s6">When to use it, and when not</a><a href="#s7">Mistakes people make</a><a href="#s8">Words to know</a><a href="#s9">Say it in an interview</a><a href="#quiz">Quiz</a></nav>
-<h2 id="s0">In one minute</h2>
+.ans p{margin:0}
+.ans .label{font:700 .72rem var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 6px}
+.mark{margin-top:14px;padding-top:12px;border-top:1px solid color-mix(in srgb,var(--accent) 25%,transparent)}
+.mark .ask{font-weight:600;font-size:.92rem;margin-right:6px}
+.btn.alt.on.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.alt.on.no{background:var(--no);border-color:var(--no);color:#fff}
+.result{display:none;border:1px solid var(--line);background:var(--surface);border-radius:18px;padding:22px 24px;margin-top:18px;box-shadow:var(--shadow)}
+.result.show{display:block}
+.result b{font:700 1.5rem var(--font-display);display:block;margin-bottom:4px}
+.result p{color:var(--muted);margin:0 0 12px}
+
+/* footer + index */
+footer{margin-top:4rem;padding-top:1.4rem;border-top:1px solid var(--line);color:var(--muted);font-size:.92rem;display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:space-between}
+.posts{list-style:none;padding:0;margin:1.6rem 0 0;display:grid;gap:12px}
+.posts a{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;align-items:center;text-decoration:none;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow)}
+.posts a:hover{border-color:var(--accent)}
+.posts .n{width:44px;height:44px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font:700 1.05rem var(--font-display)}
+.posts strong{font:700 1.05rem var(--font-display);display:block}
+.posts small{color:var(--muted);font-size:.88rem}
+
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+@media print{.bar,.toc,.qhead .dots,.tbtn,.row,.btn{display:none!important}.ans{display:block!important}body{background:#fff;color:#000}}
+</style></head><body><header class="bar"><a class="brand" href="../"><i></i><span>System Design from Zero</span></a><button class="tbtn" id="theme" type="button" aria-label="Switch between light and dark mode">Dark mode</button><div class="progress" aria-hidden="true"></div></header><div class="shell"><nav class="toc" aria-label="On this page"><b>On this page</b><a href="#s0">In one minute</a><a href="#s1">The problem</a><a href="#s2">The picture: a bank</a><a href="#s3">How it works</a><a href="#s4">Worked example: sizing the ticket app</a><a href="#s5">What it costs</a><a href="#s6">When to use it, and when not</a><a href="#s7">Mistakes people make</a><a href="#s8">Words to know</a><a href="#s9">Say it in an interview</a><a href="#quiz">Quiz</a></nav><article><header class="hero"><p class="eyebrow">Post 1 · System Design from Zero</p><h1>What is system design?</h1><p class="lede">A study guide for anyone who can program but hasn't done system design. About 20 minutes. Quiz at the end, answers at the back.</p><p class="chips"><span>5 diagrams</span><span>6-question quiz</span></p></header>
+<section id="s0" class="tldr"><h2>In one minute</h2>
 <p>An app has three kinds of parts. Phones and browsers ask for things. Servers run your code and answer. A database keeps the data on a disk, so it survives a power cut.</p>
 <p>You can add servers easily, because they keep nothing that has to last. You can't do that with the database. It holds the data, and at first there is only one of it.</p>
 <p>So as an app grows, the database becomes the part that limits everything. Most of system design is about making that one database faster, copying it, and splitting it.</p>
-<h2 id="s1">The problem</h2>
+</section>
+<section id="s1"><h2>The problem</h2>
 <p>Picture a small movie-ticket app. It runs on one computer. That computer runs the code, and it also stores every booking. With 100 users, this is fine.</p>
 <p>Then 3 million people start using it. One computer can't answer them all, so pages hang until the browser gives up. That is called a <strong>timeout</strong>.</p>
 <p>Then the computer restarts after a power cut. Nobody can book anything until it's back. If its disk had broken instead, every booking would be gone for good.</p>
 <p>Two problems, then. Too many requests for one machine. And one machine that can fail.</p>
 <p><strong>System design</strong> is arranging many machines so huge numbers of users can store and fetch data fast, without losing it.</p>
-<h2 id="s2">The picture: a bank</h2>
+</section>
+<section id="s2"><h2>The picture: a bank</h2>
 <ul><li><strong>Customers</strong> are the phones and browsers. They ask for things.</li><li><strong>Tellers</strong> are the servers that run your code. Any teller can help any customer. On a busy day, the bank opens more counters.</li><li><strong>The vault</strong> is the database. Tellers don't keep your money in their desk. They walk to the vault. That's why it doesn't matter which teller you get.</li><li><strong>A whiteboard</strong> on each desk is RAM, the computer's working memory. It's quick to write on, but it gets wiped every night.</li><li><strong>The ledger books</strong> in the vault are the disk. Slower to reach, but they stay.</li></ul>
 <p>Where the picture breaks: a bank has one vault. A big app ends up needing many vaults. Some are copies, in case one burns down. Others each hold part of the money, because one vault can't keep up.</p>
-<h2 id="s3">How it works</h2>
+</section>
+<section id="s3"><h2>How it works</h2>
 <h3>Step 1: a client asks, a server answers</h3>
 <p>Your phone asks for something, such as "show my tickets". Any program that asks like this is a <strong>client</strong>. A browser is a client too.</p>
 <p>A <strong>server</strong> is a computer that waits for requests and sends back answers. A server that runs your app's own code for each request is an <strong>application server</strong>. Big apps keep their servers in a <strong>data center</strong>: a building full of machines in racks, sharing power, cooling and network cables.</p>
@@ -66,7 +164,7 @@ footer a{color:var(--accent)}
 <p>A server accepts a fixed list of requests like that, each with a set meaning and a set kind of answer. That list is the server's <strong>API</strong> (application programming interface).</p>
 <h3>Step 2: decide what kind of storage holds the data</h3>
 <p>Every computer has two places to keep data, and they are good at opposite things.</p>
-<figure><img src="img/ram-vs-disk.svg" alt="RAM is fast but forgets everything when the power goes. Disk is slow but keeps everything."><figcaption>RAM is fast but forgets everything when the power goes. Disk is slow but keeps everything.</figcaption></figure>
+<figure><div class="img"><img loading="lazy" decoding="async" src="img/ram-vs-disk.svg" alt="RAM is fast but forgets everything when the power goes. Disk is slow but keeps everything."></div><figcaption>RAM is fast but forgets everything when the power goes. Disk is slow but keeps everything.</figcaption></figure>
 <p><strong>RAM</strong> is where a running program keeps its working data. One read takes about 100 nanoseconds. A nanosecond is a billionth of a second. But RAM forgets everything when the power goes.</p>
 <p>A <strong>disk</strong> keeps data with the power off. There are two kinds:</p>
 <ul><li>A <strong>hard drive</strong> (HDD) spins metal plates and moves a tiny arm over them. One read takes about 10 milliseconds. A millisecond is a thousandth of a second.</li><li>An <strong>SSD</strong> (solid-state drive) uses chips with no moving parts. One read takes about 100 microseconds. A microsecond is a millionth of a second.</li></ul>
@@ -75,12 +173,12 @@ footer a{color:var(--accent)}
 <h3>Step 3: decide which computer holds the data</h3>
 <p>Say you run three application servers: A, B and C. Something has to choose which one gets each request. A machine that spreads requests across servers, so none is overloaded, is a <strong>load balancer</strong>.</p>
 <p>Now the tempting mistake: let each server keep its own data.</p>
-<figure><img src="img/shared-database.svg" alt="Wrong: your booking sits on Server A, so Server B says no tickets found. Right: all servers share one database."><figcaption>Wrong: your booking sits on Server A, so Server B says no tickets found. Right: all servers share one database.</figcaption></figure>
+<figure><div class="img"><img loading="lazy" decoding="async" src="img/shared-database.svg" alt="Wrong: your booking sits on Server A, so Server B says no tickets found. Right: all servers share one database."></div><figcaption>Wrong: your booking sits on Server A, so Server B says no tickets found. Right: all servers share one database.</figcaption></figure>
 <ol><li>You book a ticket. The load balancer sends it to A, and A saves it on its own disk.</li><li>Later you open "My tickets". This time the request goes to B.</li><li>B has never seen your booking. It says "No tickets found".</li></ol>
 <p>The fix is to take the data off the servers. Put it on one separate machine that every server talks to: the database. Now the database is the <strong>single source of truth</strong>, the one place whose answer counts.</p>
 <p>A server that keeps no data that has to last is called <strong>stateless</strong>. Even who is logged in lives somewhere else. Stateless servers are easy to add. When traffic doubles, start more of them.</p>
 <p>Many requests never reach the database at all. A short-lived copy of popular data is kept in RAM, on the app servers or on a separate cache machine. That copy is a <strong>cache</strong>. When the cache doesn't have what you need, that's a <strong>miss</strong>, and only then does the server ask the database.</p>
-<figure><img src="img/architecture.svg" alt="The whole picture: clients, a load balancer, app servers A to C, a cache and one database."><figcaption>The whole picture: clients, a load balancer, app servers A to C, a cache and one database.</figcaption></figure>
+<figure><div class="img"><img loading="lazy" decoding="async" src="img/architecture.svg" alt="The whole picture: clients, a load balancer, app servers A to C, a cache and one database."></div><figcaption>The whole picture: clients, a load balancer, app servers A to C, a cache and one database.</figcaption></figure>
 <p>How much work a machine can handle before it slows down is its <strong>capacity</strong>. App servers often run out of capacity first. But that's the easy limit to lift: add more. The database is the limit that stays.</p>
 <h3>Step 4: the database becomes the bottleneck</h3>
 <p>The one part that limits how fast the whole system can go is the <strong>bottleneck</strong>. Think of a bottle: however wide it is, water only pours as fast as the neck allows.</p>
@@ -89,7 +187,7 @@ footer a{color:var(--accent)}
 <ol><li><strong>Speed</strong>: too many reads and writes each second.</li><li><strong>Size</strong>: more data than one machine can hold.</li><li><strong>Reliability</strong>: if it dies, the whole app stops.</li></ol>
 <p>One part whose failure stops everything is a <strong>single point of failure</strong>. A lone database is one.</p>
 <h3>Step 4b: two ways to grow</h3>
-<figure><img src="img/scaling.svg" alt="One database under three pressures. Scale up with a bigger machine, or scale out to many machines by copying or splitting the data."><figcaption>One database under three pressures. Scale up with a bigger machine, or scale out to many machines by copying or splitting the data.</figcaption></figure>
+<figure><div class="img"><img loading="lazy" decoding="async" src="img/scaling.svg" alt="One database under three pressures. Scale up with a bigger machine, or scale out to many machines by copying or splitting the data."></div><figcaption>One database under three pressures. Scale up with a bigger machine, or scale out to many machines by copying or splitting the data.</figcaption></figure>
 <p>There are two ways to grow:</p>
 <ul><li><strong>Vertical scaling</strong> (scale up): buy a bigger machine. Simple. But there is a biggest machine you can buy, and it can still die.</li><li><strong>Horizontal scaling</strong> (scale out): use many ordinary machines. No one-machine ceiling. But the machines must send each other messages to agree on who holds what, and which copy is up to date. Messages take time, and they can get lost when a machine or the network fails. That agreeing is where most of the hard problems come from.</li></ul>
 <p>Scaling out the data comes in two kinds:</p>
@@ -100,9 +198,10 @@ footer a{color:var(--accent)}
 <ul><li>fast reads,</li><li>fast writes,</li><li>reliability: no lost data, no downtime when a machine fails.</li></ul>
 <p>And every technique pays for its gain somewhere else.</p>
 <p>"Fast" has two meanings. <strong>Latency</strong> is how long one request takes, from asking to getting the answer. The second meaning is <strong>throughput</strong>. It is how much work gets done each second. They differ. A bus that leaves once an hour with 50 people moves more people per hour than a taxi. So its throughput is higher. But you may wait an hour for it, so its latency is worse.</p>
-<h2 id="s4">Worked example: sizing the ticket app</h2>
+</section>
+<section id="s4"><h2>Worked example: sizing the ticket app</h2>
 <p>Our app has 3 million users a day. Each opens it about 10 times, and each open is one request.</p>
-<figure><img src="img/estimate.svg" alt="Traffic decides how many app servers you need. Data decides the storage."><figcaption>Traffic decides how many app servers you need. Data decides the storage.</figcaption></figure>
+<figure><div class="img"><img loading="lazy" decoding="async" src="img/estimate.svg" alt="Traffic decides how many app servers you need. Data decides the storage."></div><figcaption>Traffic decides how many app servers you need. Data decides the storage.</figcaption></figure>
 <p><strong>Requests per second.</strong> A day has 24 × 60 × 60 = 86,400 seconds.</p>
 <pre>3,000,000 users × 10 requests = 30,000,000 requests a day
 30,000,000 ÷ 86,400 seconds   ≈ 347, so about 350 requests a second</pre>
@@ -119,44 +218,132 @@ footer a{color:var(--accent)}
 <p><strong>Why not keep it all in RAM?</strong> A power cut would erase it. RAM is also far smaller and costs far more per GB than disk: 13.5 TB won't fit in one server's RAM. The price of disk is speed:</p>
 <pre>SSD vs RAM:        100 µs ÷ 100 ns = 100,000 ns ÷ 100 ns    = 1,000 times slower
 hard drive vs RAM: 10 ms ÷ 100 ns  = 10,000,000 ns ÷ 100 ns = 100,000 times slower</pre>
-<h2 id="s5">What it costs</h2>
-<table><tr><th></th><th></th></tr><tr><td>A separate database buys you</td><td>any server can answer any user, and you can add servers freely</td></tr><tr><td>It costs you</td><td>a network trip to the database for every request the cache can't answer, and the database becomes the limit</td></tr><tr><td>Scaling up</td><td>simple, but has a ceiling and is still one machine that can fail</td></tr><tr><td>Scaling out</td><td>no one-machine ceiling, and survives failures if data is copied, but machines must agree, and copies can disagree</td></tr></table>
+</section>
+<section id="s5"><h2>What it costs</h2>
+<div class="tw"><table><tr><th></th><th></th></tr><tr><td>A separate database buys you</td><td>any server can answer any user, and you can add servers freely</td></tr><tr><td>It costs you</td><td>a network trip to the database for every request the cache can't answer, and the database becomes the limit</td></tr><tr><td>Scaling up</td><td>simple, but has a ceiling and is still one machine that can fail</td></tr><tr><td>Scaling out</td><td>no one-machine ceiling, and survives failures if data is copied, but machines must agree, and copies can disagree</td></tr></table></div>
 <p>How copies disagree: you rename your saved list. Copy 1 gets the change now. Copy 2 gets it a moment later. For that moment, anyone reading copy 2 sees the old name. If copy 2's machine was down, it misses the change until it catches up. In some setups, a change can be lost for good. Deciding what happens then is the seed of most of this series.</p>
-<h2 id="s6">When to use it, and when not</h2>
+</section>
+<section id="s6"><h2>When to use it, and when not</h2>
 <p>Split into app servers plus one database when:</p>
 <ul><li>more than one server will handle requests,</li><li>the data must outlive any one server,</li><li>or traffic goes up and down.</li></ul>
 <p>Stay on one machine when it handles your load with room to spare. A short outage must also be fine, like for an internal tool used by ten people.</p>
-<h2 id="s7">Mistakes people make</h2>
+</section>
+<section id="s7"><h2>Mistakes people make</h2>
 <p><strong>"More servers always make the site faster."</strong> Only if the servers are the bottleneck. If every request waits on one overloaded database, more servers just wait too.</p>
 <p><strong>"It's on disk, so it's safe."</strong> A disk survives a power cut. But disks break, and so do whole machines. Real safety needs copies on other machines.</p>
 <p><strong>"Databases don't use RAM."</strong> They use lots of it, for recently used data and for lookup helpers. But the copy that counts must end up on disk.</p>
-<h2 id="s8">Words to know</h2>
+</section>
+<section id="s8"><h2>Words to know</h2>
 <ul><li><strong>Client</strong>: the program that asks, like a phone app or browser.</li><li><strong>Server</strong>: a computer that waits for requests and answers.</li><li><strong>Application server</strong>: a server that runs your app's code for each request.</li><li><strong>Data center</strong>: a building full of servers in racks.</li><li><strong>Protocol</strong>: shared rules for a conversation between programs. HTTP is the web's protocol, and its verb GET means "fetch this".</li><li><strong>API</strong>: the list of requests a server accepts, and what each returns.</li><li><strong>RAM</strong>: fast memory that forgets everything when the power goes.</li><li><strong>Disk</strong> (HDD or SSD): slower storage that keeps data with the power off.</li><li><strong>Register</strong>: a tiny slot on the processor where it does its maths.</li><li><strong>Load balancer</strong>: spreads requests across servers.</li><li><strong>Single source of truth</strong>: the one place whose data counts.</li><li><strong>Stateless</strong>: keeps nothing that has to last, so any copy can answer any request.</li><li><strong>Cache</strong>: a short-lived copy of popular data, usually in RAM. A <strong>miss</strong> means it doesn't have what you asked for.</li><li><strong>Capacity</strong>: how much work a machine can take before it slows down.</li><li><strong>Bottleneck</strong>: the one part that limits the whole system.</li><li><strong>Single point of failure</strong>: one part whose failure stops everything.</li><li><strong>Vertical / horizontal scaling</strong>: one bigger machine / many machines.</li><li><strong>Replication</strong>: copies of the same data on several machines.</li><li><strong>Partitioning</strong> (sharding): each machine holds part of the data.</li><li><strong>Fault tolerance</strong>: keeps working when some parts fail.</li><li><strong>Latency</strong>: how long one request takes. <strong>Throughput</strong>: how much gets done per second.</li><li><strong>Peak</strong>: the busiest hour. <strong>Headroom</strong>: spare capacity on top.</li></ul>
-<h2 id="s9">Say it in an interview</h2>
-<div class="callout">A big system has clients, stateless app servers and a database. The database is the single source of truth, kept on disk so it survives crashes. App servers scale by adding more, since they hold nothing that has to last. When one database isn't fast, big or reliable enough, you replicate it to survive failures and partition it to grow. Every step adds the problem of keeping machines in agreement.</div><section id="quiz"><h2>Quiz</h2><div class="score" id="score" aria-live="polite"></div><div class="q"><p class="qt"><b>1.</b> Your app runs 4 app servers and each keeps its own data on its own disk. A user saves a ticket, then can't see it. Explain what happened, step by step.</p><textarea aria-label="Your answer to question 1" placeholder="Try it in your own words first (optional)"></textarea><button class="show" type="button" aria-expanded="false">Show answer</button><div class="ans"><div>The load balancer sent the save to one server, say A, which wrote it to its own disk. The next request went to another server, say C, which has never seen it. The data lived on one server, so it depended on which server you reached.</div><div class="mark">Did you get it? <button class="alt ok" data-v="ok" type="button">Got it</button> <button class="alt no" data-v="no" type="button">Not yet</button></div></div></div><div class="q"><p class="qt"><b>2.</b> Why can you add app servers freely but not copies of the database?</p><textarea aria-label="Your answer to question 2" placeholder="Try it in your own words first (optional)"></textarea><button class="show" type="button" aria-expanded="false">Show answer</button><div class="ans"><div>App servers are stateless: they keep nothing that has to last, so any copy can answer. The database holds the data itself. Copies of it would get different writes and give different answers, unless something keeps them in agreement.</div><div class="mark">Did you get it? <button class="alt ok" data-v="ok" type="button">Got it</button> <button class="alt no" data-v="no" type="button">Not yet</button></div></div></div><div class="q"><p class="qt"><b>3.</b> An app has 1.2 million users a day, each making 18 requests. Roughly how many requests a second is that on average? How many should you plan for at peak, using 5 times?</p><textarea aria-label="Your answer to question 3" placeholder="Try it in your own words first (optional)"></textarea><button class="show" type="button" aria-expanded="false">Show answer</button><div class="ans"><div>1,200,000 × 18 = 21,600,000 a day. 21,600,000 ÷ 86,400 = 250 a second on average. At peak, 250 × 5 = 1,250 a second.</div><div class="mark">Did you get it? <button class="alt ok" data-v="ok" type="button">Got it</button> <button class="alt no" data-v="no" type="button">Not yet</button></div></div></div><div class="q"><p class="qt"><b>4.</b> Using your peak from question 3, if one server handles 400 requests a second, how many servers do you need at peak?</p><textarea aria-label="Your answer to question 4" placeholder="Try it in your own words first (optional)"></textarea><button class="show" type="button" aria-expanded="false">Show answer</button><div class="ans"><div>1,250 ÷ 400 = 3.1, so 4 servers at peak, plus headroom, say 5 or 6.</div><div class="mark">Did you get it? <button class="alt ok" data-v="ok" type="button">Got it</button> <button class="alt no" data-v="no" type="button">Not yet</button></div></div></div><div class="q"><p class="qt"><b>5.</b> Name the three pressures on a single database, and which of replication or partitioning answers each.</p><textarea aria-label="Your answer to question 5" placeholder="Try it in your own words first (optional)"></textarea><button class="show" type="button" aria-expanded="false">Show answer</button><div class="ans"><div>Speed: partitioning splits the work across machines, and replication adds copies that can share reads. Size: partitioning, since each machine holds part. Reliability: replication, since a copy takes over when a machine dies.</div><div class="mark">Did you get it? <button class="alt ok" data-v="ok" type="button">Got it</button> <button class="alt no" data-v="no" type="button">Not yet</button></div></div></div><div class="q"><p class="qt"><b>6.</b> A bus and a taxi: which has better throughput, which has better latency, and why?</p><textarea aria-label="Your answer to question 6" placeholder="Try it in your own words first (optional)"></textarea><button class="show" type="button" aria-expanded="false">Show answer</button><div class="ans"><div>The bus has better throughput: it moves 50 people per trip. The taxi has better latency: you leave almost at once instead of waiting up to an hour.</div><div class="mark">Did you get it? <button class="alt ok" data-v="ok" type="button">Got it</button> <button class="alt no" data-v="no" type="button">Not yet</button></div></div></div></section><footer>System Design from Zero · by <a href="https://www.linkedin.com/in/pratham-gupta-4a9798244/">Pratham Gupta</a></footer></main><script>
-(function(){
-  var cards=[].slice.call(document.querySelectorAll('.q'));
-  var score=document.getElementById('score');
-  function update(){
-    var ok=0,done=0;
-    cards.forEach(function(c){var s=c.getAttribute('data-r');if(s){done++;if(s==='ok')ok++;}});
-    score.textContent='Got it: '+ok+' of '+cards.length+(done<cards.length?'  ·  '+(cards.length-done)+' to go':'');
+</section>
+<section id="s9"><h2>Say it in an interview</h2>
+<div class="callout">A big system has clients, stateless app servers and a database. The database is the single source of truth, kept on disk so it survives crashes. App servers scale by adding more, since they hold nothing that has to last. When one database isn't fast, big or reliable enough, you replicate it to survive failures and partition it to grow. Every step adds the problem of keeping machines in agreement.</div></section><section id="quiz"><h2>Quiz</h2><p class="qintro">Answer each one in your own words, then check. Your marks stay in this browser.</p><div class="qhead"><div class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="score" id="score" aria-live="polite"></div></div><div class="q"><div class="qt"><span class="qn">1</span><span>Your app runs 4 app servers and each keeps its own data on its own disk. A user saves a ticket, then can't see it. Explain what happened, step by step.</span></div><textarea id="a1" aria-label="Your answer to question 1" placeholder="Try it in your own words first (optional)"></textarea><div class="row"><button class="btn primary show" type="button" aria-expanded="false">Show answer</button></div><div class="ans"><p class="label">Answer</p><p>The load balancer sent the save to one server, say A, which wrote it to its own disk. The next request went to another server, say C, which has never seen it. The data lived on one server, so it depended on which server you reached.</p><div class="mark"><span class="ask">How did you do?</span><button class="btn alt ok" data-v="ok" type="button">Got it</button> <button class="btn alt no" data-v="no" type="button">Not yet</button></div></div></div><div class="q"><div class="qt"><span class="qn">2</span><span>Why can you add app servers freely but not copies of the database?</span></div><textarea id="a2" aria-label="Your answer to question 2" placeholder="Try it in your own words first (optional)"></textarea><div class="row"><button class="btn primary show" type="button" aria-expanded="false">Show answer</button></div><div class="ans"><p class="label">Answer</p><p>App servers are stateless: they keep nothing that has to last, so any copy can answer. The database holds the data itself. Copies of it would get different writes and give different answers, unless something keeps them in agreement.</p><div class="mark"><span class="ask">How did you do?</span><button class="btn alt ok" data-v="ok" type="button">Got it</button> <button class="btn alt no" data-v="no" type="button">Not yet</button></div></div></div><div class="q"><div class="qt"><span class="qn">3</span><span>An app has 1.2 million users a day, each making 18 requests. Roughly how many requests a second is that on average? How many should you plan for at peak, using 5 times?</span></div><textarea id="a3" aria-label="Your answer to question 3" placeholder="Try it in your own words first (optional)"></textarea><div class="row"><button class="btn primary show" type="button" aria-expanded="false">Show answer</button></div><div class="ans"><p class="label">Answer</p><p>1,200,000 × 18 = 21,600,000 a day. 21,600,000 ÷ 86,400 = 250 a second on average. At peak, 250 × 5 = 1,250 a second.</p><div class="mark"><span class="ask">How did you do?</span><button class="btn alt ok" data-v="ok" type="button">Got it</button> <button class="btn alt no" data-v="no" type="button">Not yet</button></div></div></div><div class="q"><div class="qt"><span class="qn">4</span><span>Using your peak from question 3, if one server handles 400 requests a second, how many servers do you need at peak?</span></div><textarea id="a4" aria-label="Your answer to question 4" placeholder="Try it in your own words first (optional)"></textarea><div class="row"><button class="btn primary show" type="button" aria-expanded="false">Show answer</button></div><div class="ans"><p class="label">Answer</p><p>1,250 ÷ 400 = 3.1, so 4 servers at peak, plus headroom, say 5 or 6.</p><div class="mark"><span class="ask">How did you do?</span><button class="btn alt ok" data-v="ok" type="button">Got it</button> <button class="btn alt no" data-v="no" type="button">Not yet</button></div></div></div><div class="q"><div class="qt"><span class="qn">5</span><span>Name the three pressures on a single database, and which of replication or partitioning answers each.</span></div><textarea id="a5" aria-label="Your answer to question 5" placeholder="Try it in your own words first (optional)"></textarea><div class="row"><button class="btn primary show" type="button" aria-expanded="false">Show answer</button></div><div class="ans"><p class="label">Answer</p><p>Speed: partitioning splits the work across machines, and replication adds copies that can share reads. Size: partitioning, since each machine holds part. Reliability: replication, since a copy takes over when a machine dies.</p><div class="mark"><span class="ask">How did you do?</span><button class="btn alt ok" data-v="ok" type="button">Got it</button> <button class="btn alt no" data-v="no" type="button">Not yet</button></div></div></div><div class="q"><div class="qt"><span class="qn">6</span><span>A bus and a taxi: which has better throughput, which has better latency, and why?</span></div><textarea id="a6" aria-label="Your answer to question 6" placeholder="Try it in your own words first (optional)"></textarea><div class="row"><button class="btn primary show" type="button" aria-expanded="false">Show answer</button></div><div class="ans"><p class="label">Answer</p><p>The bus has better throughput: it moves 50 people per trip. The taxi has better latency: you leave almost at once instead of waiting up to an hour.</p><div class="mark"><span class="ask">How did you do?</span><button class="btn alt ok" data-v="ok" type="button">Got it</button> <button class="btn alt no" data-v="no" type="button">Not yet</button></div></div></div><div class="result" id="result" role="status"><b></b><p></p><button class="btn" id="reset" type="button">Start the quiz again</button></div></section><footer><span>System Design from Zero · by <a href="https://www.linkedin.com/in/pratham-gupta-4a9798244/">Pratham Gupta</a></span><a href="../">More posts</a></footer></article></div><script>(function () {
+  var root = document.documentElement;
+  function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  /* theme toggle: system by default, explicit choice remembered */
+  var tbtn = document.getElementById('theme');
+  function isDark() {
+    var t = root.getAttribute('data-theme');
+    if (t) return t === 'dark';
+    return window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
   }
-  cards.forEach(function(c){
-    var ans=c.querySelector('.ans'),show=c.querySelector('.show');
-    show.addEventListener('click',function(){
-      var open=ans.classList.toggle('open');
-      show.textContent=open?'Hide answer':'Show answer';
-      show.setAttribute('aria-expanded',open);
+  var saved = get('sdz-theme');
+  if (saved === 'dark' || saved === 'light') root.setAttribute('data-theme', saved);
+  function label() { if (tbtn) tbtn.textContent = isDark() ? 'Light mode' : 'Dark mode'; }
+  label();
+  if (tbtn) tbtn.addEventListener('click', function () {
+    var next = isDark() ? 'light' : 'dark';
+    root.setAttribute('data-theme', next); set('sdz-theme', next); label();
+  });
+
+  /* reading progress */
+  var prog = document.querySelector('.progress');
+  function onScroll() {
+    if (!prog) return;
+    var h = document.documentElement.scrollHeight - innerHeight;
+    prog.style.transform = 'scaleX(' + (h > 0 ? Math.min(1, scrollY / h) : 0) + ')';
+  }
+  addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  /* contents: highlight the section being read */
+  var links = [].slice.call(document.querySelectorAll('.toc a'));
+  var secs = links.map(function (a) { return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+  function spy() {
+    var cur = secs[0], y = innerHeight * 0.3;
+    secs.forEach(function (s) { if (s.getBoundingClientRect().top <= y) cur = s; });
+    links.forEach(function (a) {
+      var on = cur && a.getAttribute('href') === '#' + cur.id;
+      a.classList.toggle('on', on);
+      if (on && a.scrollIntoView && getComputedStyle(a.parentNode).overflowX === 'auto') {
+        var p = a.parentNode; p.scrollLeft = a.offsetLeft - 16;
+      }
     });
-    [].slice.call(c.querySelectorAll('.alt')).forEach(function(b){
-      b.addEventListener('click',function(){
-        var r=b.getAttribute('data-v');
-        c.setAttribute('data-r',r);
-        [].slice.call(c.querySelectorAll('.alt')).forEach(function(x){x.classList.toggle('on',x===b);});
-        update();
+  }
+  addEventListener('scroll', spy, { passive: true }); spy();
+
+  /* quiz */
+  var cards = [].slice.call(document.querySelectorAll('.q'));
+  if (!cards.length) return;
+  var key = 'sdz-quiz:' + location.pathname;
+  var state = {};
+  try { state = JSON.parse(get(key) || '{}'); } catch (e) { state = {}; }
+  var dots = [].slice.call(document.querySelectorAll('.dots i'));
+  var score = document.getElementById('score');
+  var result = document.getElementById('result');
+  function save() { set(key, JSON.stringify(state)); }
+  function update() {
+    var ok = 0, done = 0;
+    cards.forEach(function (c, i) {
+      var r = c.getAttribute('data-r') || '';
+      if (r) { done++; if (r === 'ok') ok++; }
+      dots[i].className = r;
+    });
+    score.textContent = ok + ' of ' + cards.length + ' got it';
+    if (done === cards.length) {
+      var msg = ok === cards.length ? 'Every one. You can explain this to someone else now.'
+        : ok >= cards.length - 2 ? 'Nearly there. Read the sections behind the ones marked Not yet, then try them again.'
+        : 'Read the sections behind the ones marked Not yet, then try them again. Going slowly here pays off later.';
+      result.querySelector('b').textContent = 'You got ' + ok + ' of ' + cards.length;
+      result.querySelector('p').textContent = msg;
+      result.classList.add('show');
+    } else { result.classList.remove('show'); }
+  }
+  cards.forEach(function (c, i) {
+    var ans = c.querySelector('.ans'), show = c.querySelector('.show'), ta = c.querySelector('textarea');
+    var s = state[i] || {};
+    if (s.t) ta.value = s.t;
+    if (s.r) {
+      c.setAttribute('data-r', s.r);
+      var b = c.querySelector('.alt[data-v="' + s.r + '"]'); if (b) b.classList.add('on');
+    }
+    ta.addEventListener('input', function () { state[i] = state[i] || {}; state[i].t = ta.value; save(); });
+    show.addEventListener('click', function () {
+      var open = ans.classList.toggle('open');
+      show.textContent = open ? 'Hide answer' : 'Show answer';
+      show.setAttribute('aria-expanded', open);
+    });
+    [].slice.call(c.querySelectorAll('.alt')).forEach(function (b) {
+      b.addEventListener('click', function () {
+        var r = b.getAttribute('data-v');
+        c.setAttribute('data-r', r);
+        [].slice.call(c.querySelectorAll('.alt')).forEach(function (x) { x.classList.toggle('on', x === b); });
+        state[i] = state[i] || {}; state[i].r = r; save(); update();
       });
     });
+  });
+  var reset = document.getElementById('reset');
+  if (reset) reset.addEventListener('click', function () {
+    state = {}; save();
+    cards.forEach(function (c) {
+      c.removeAttribute('data-r'); c.querySelector('textarea').value = '';
+      c.querySelector('.ans').classList.remove('open');
+      var sh = c.querySelector('.show'); sh.textContent = 'Show answer'; sh.setAttribute('aria-expanded', 'false');
+      [].slice.call(c.querySelectorAll('.alt')).forEach(function (x) { x.classList.remove('on'); });
+    });
+    update();
+    document.getElementById('quiz').scrollIntoView();
   });
   update();
 })();
