@@ -1,0 +1,163 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Post 1: What is system design? · System Design from Zero</title><meta name="description" content="An app has three kinds of parts. Phones and browsers ask for things. Servers run your code and answer. A database keeps the data on a disk, so it survives a power cut."><style>
+:root{--fg:#141a26;--muted:#5b6475;--line:#dfe3ec;--accent:#1d3fcc;--soft:#eef1fd;--mark:#fff1c4;--ok:#1e8449;--no:#c0392b;--bg:#f7f8fa}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 -apple-system,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:720px;margin:0 auto;padding:28px 16px 64px}
+h1{font-size:2rem;line-height:1.15;letter-spacing:-.01em;margin:0 0 6px}
+h1+p{color:var(--muted);margin-top:0}
+.eyebrow{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:0 0 8px}
+h2{font-size:1.35rem;color:var(--accent);margin:2.2rem 0 .6rem;padding-bottom:.25rem;border-bottom:2px solid var(--accent)}
+h3{font-size:1.08rem;margin:1.4rem 0 .3rem}
+p{margin:0 0 .9rem}
+ul,ol{margin:0 0 1rem;padding-left:1.3rem}
+li{margin-bottom:.35rem}
+code{font:.88em Menlo,monospace;background:var(--soft);padding:1px 4px;border-radius:3px}
+pre{font:.85rem/1.5 Menlo,monospace;background:var(--soft);padding:12px 14px;border-radius:8px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;margin:0 0 1rem;font-size:.92rem;display:block;overflow-x:auto}
+th,td{text-align:left;vertical-align:top;padding:7px 9px;border-bottom:1px solid var(--line)}
+th{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.callout{background:var(--mark);border-radius:8px;padding:12px 15px;margin:0 0 1rem}
+figure{margin:1rem 0 1.4rem;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+figure img{max-width:100%;height:auto}
+figcaption{font-size:.85rem;color:var(--muted);margin-top:6px}
+.pb{display:none}
+nav.toc{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:1rem 0 1.6rem;font-size:.92rem}
+nav.toc b{display:block;margin-bottom:4px;color:var(--muted);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase}
+nav.toc a{color:var(--accent);text-decoration:none;display:inline-block;margin:2px 14px 2px 0}
+#quiz .score{position:sticky;top:0;background:var(--bg);padding:8px 0;font-weight:700;z-index:2}
+.q{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:0 0 14px}
+.q .qt{margin:0 0 10px}
+.q .qt b{color:var(--accent)}
+.q textarea{width:100%;min-height:70px;font:inherit;font-size:.95rem;padding:8px 10px;border:1px solid var(--line);border-radius:8px;resize:vertical;background:#fff;color:var(--fg)}
+.q button{font:inherit;font-size:.92rem;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:8px;padding:7px 14px;cursor:pointer;margin-top:8px}
+.q button.alt{background:#fff;color:var(--fg);border-color:var(--line)}
+.q button.alt.on.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.q button.alt.on.no{background:var(--no);border-color:var(--no);color:#fff}
+.q button:focus-visible,.q textarea:focus-visible{outline:3px solid var(--mark);outline-offset:1px}
+.ans{display:none;margin-top:12px;border-left:4px solid var(--accent);background:var(--soft);padding:10px 14px;border-radius:0 8px 8px 0}
+.ans.open{display:block}
+.ans .mark{margin-top:8px}
+footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
+footer a{color:var(--accent)}
+@media(max-width:480px){body{font-size:16px}h1{font-size:1.7rem}}
+</style></head><body><main><p class="eyebrow">System Design from Zero</p><h1>Post 1: What is system design?</h1>
+<p>A study guide for anyone who can program but hasn't done system design. About 20 minutes. Quiz at the end, answers at the back.</p><nav class="toc"><b>On this page</b><a href="#s0">In one minute</a><a href="#s1">The problem</a><a href="#s2">The picture: a bank</a><a href="#s3">How it works</a><a href="#s4">Worked example: sizing the ticket app</a><a href="#s5">What it costs</a><a href="#s6">When to use it, and when not</a><a href="#s7">Mistakes people make</a><a href="#s8">Words to know</a><a href="#s9">Say it in an interview</a><a href="#quiz">Quiz</a></nav>
+<h2 id="s0">In one minute</h2>
+<p>An app has three kinds of parts. Phones and browsers ask for things. Servers run your code and answer. A database keeps the data on a disk, so it survives a power cut.</p>
+<p>You can add servers easily, because they keep nothing that has to last. You can't do that with the database. It holds the data, and at first there is only one of it.</p>
+<p>So as an app grows, the database becomes the part that limits everything. Most of system design is about making that one database faster, copying it, and splitting it.</p>
+<h2 id="s1">The problem</h2>
+<p>Picture a small movie-ticket app. It runs on one computer. That computer runs the code, and it also stores every booking. With 100 users, this is fine.</p>
+<p>Then 3 million people start using it. One computer can't answer them all, so pages hang until the browser gives up. That is called a <strong>timeout</strong>.</p>
+<p>Then the computer restarts after a power cut. Nobody can book anything until it's back. If its disk had broken instead, every booking would be gone for good.</p>
+<p>Two problems, then. Too many requests for one machine. And one machine that can fail.</p>
+<p><strong>System design</strong> is arranging many machines so huge numbers of users can store and fetch data fast, without losing it.</p>
+<h2 id="s2">The picture: a bank</h2>
+<ul><li><strong>Customers</strong> are the phones and browsers. They ask for things.</li><li><strong>Tellers</strong> are the servers that run your code. Any teller can help any customer. On a busy day, the bank opens more counters.</li><li><strong>The vault</strong> is the database. Tellers don't keep your money in their desk. They walk to the vault. That's why it doesn't matter which teller you get.</li><li><strong>A whiteboard</strong> on each desk is RAM, the computer's working memory. It's quick to write on, but it gets wiped every night.</li><li><strong>The ledger books</strong> in the vault are the disk. Slower to reach, but they stay.</li></ul>
+<p>Where the picture breaks: a bank has one vault. A big app ends up needing many vaults. Some are copies, in case one burns down. Others each hold part of the money, because one vault can't keep up.</p>
+<h2 id="s3">How it works</h2>
+<h3>Step 1: a client asks, a server answers</h3>
+<p>Your phone asks for something, such as "show my tickets". Any program that asks like this is a <strong>client</strong>. A browser is a client too.</p>
+<p>A <strong>server</strong> is a computer that waits for requests and sends back answers. A server that runs your app's own code for each request is an <strong>application server</strong>. Big apps keep their servers in a <strong>data center</strong>: a building full of machines in racks, sharing power, cooling and network cables.</p>
+<h3>Step 1b: the rules they share</h3>
+<p>Both sides follow the same rules, or they couldn't understand each other. A shared set of rules for a conversation between programs is a <strong>protocol</strong>.</p>
+<p>The web's protocol is HTTP, short for HyperText Transfer Protocol. Every HTTP request starts with a verb. The verb <strong>GET</strong> means "fetch this". So <code>GET /tickets</code> asks for your tickets.</p>
+<p>A server accepts a fixed list of requests like that, each with a set meaning and a set kind of answer. That list is the server's <strong>API</strong> (application programming interface).</p>
+<h3>Step 2: decide what kind of storage holds the data</h3>
+<p>Every computer has two places to keep data, and they are good at opposite things.</p>
+<figure><img src="img/ram-vs-disk.svg" alt="RAM is fast but forgets everything when the power goes. Disk is slow but keeps everything."><figcaption>RAM is fast but forgets everything when the power goes. Disk is slow but keeps everything.</figcaption></figure>
+<p><strong>RAM</strong> is where a running program keeps its working data. One read takes about 100 nanoseconds. A nanosecond is a billionth of a second. But RAM forgets everything when the power goes.</p>
+<p>A <strong>disk</strong> keeps data with the power off. There are two kinds:</p>
+<ul><li>A <strong>hard drive</strong> (HDD) spins metal plates and moves a tiny arm over them. One read takes about 10 milliseconds. A millisecond is a thousandth of a second.</li><li>An <strong>SSD</strong> (solid-state drive) uses chips with no moving parts. One read takes about 100 microseconds. A microsecond is a millionth of a second.</li></ul>
+<p>A ticket must never vanish because the power flickered. So <strong>the permanent copy of the data lives on disk</strong>. RAM is fast scratch space. Disks are slow, and that slowness shapes how databases store data. The next part of the series starts there.</p>
+<p>A small detail: the processor doesn't do its maths in RAM itself. It copies values into a few tiny slots on the chip, called <strong>registers</strong>, and works there.</p>
+<h3>Step 3: decide which computer holds the data</h3>
+<p>Say you run three application servers: A, B and C. Something has to choose which one gets each request. A machine that spreads requests across servers, so none is overloaded, is a <strong>load balancer</strong>.</p>
+<p>Now the tempting mistake: let each server keep its own data.</p>
+<figure><img src="img/shared-database.svg" alt="Wrong: your booking sits on Server A, so Server B says no tickets found. Right: all servers share one database."><figcaption>Wrong: your booking sits on Server A, so Server B says no tickets found. Right: all servers share one database.</figcaption></figure>
+<ol><li>You book a ticket. The load balancer sends it to A, and A saves it on its own disk.</li><li>Later you open "My tickets". This time the request goes to B.</li><li>B has never seen your booking. It says "No tickets found".</li></ol>
+<p>The fix is to take the data off the servers. Put it on one separate machine that every server talks to: the database. Now the database is the <strong>single source of truth</strong>, the one place whose answer counts.</p>
+<p>A server that keeps no data that has to last is called <strong>stateless</strong>. Even who is logged in lives somewhere else. Stateless servers are easy to add. When traffic doubles, start more of them.</p>
+<p>Many requests never reach the database at all. A short-lived copy of popular data is kept in RAM, on the app servers or on a separate cache machine. That copy is a <strong>cache</strong>. When the cache doesn't have what you need, that's a <strong>miss</strong>, and only then does the server ask the database.</p>
+<figure><img src="img/architecture.svg" alt="The whole picture: clients, a load balancer, app servers A to C, a cache and one database."><figcaption>The whole picture: clients, a load balancer, app servers A to C, a cache and one database.</figcaption></figure>
+<p>How much work a machine can handle before it slows down is its <strong>capacity</strong>. App servers often run out of capacity first. But that's the easy limit to lift: add more. The database is the limit that stays.</p>
+<h3>Step 4: the database becomes the bottleneck</h3>
+<p>The one part that limits how fast the whole system can go is the <strong>bottleneck</strong>. Think of a bottle: however wide it is, water only pours as fast as the neck allows.</p>
+<p>You can't just start ten copies of the database and hope. Without something keeping them in step, each copy would get different writes. One would have your booking and another wouldn't, and users would see different answers. The database is the <strong>state</strong>: the data that has to last, all in one place.</p>
+<p>Three pressures hit that one database as the app grows:</p>
+<ol><li><strong>Speed</strong>: too many reads and writes each second.</li><li><strong>Size</strong>: more data than one machine can hold.</li><li><strong>Reliability</strong>: if it dies, the whole app stops.</li></ol>
+<p>One part whose failure stops everything is a <strong>single point of failure</strong>. A lone database is one.</p>
+<h3>Step 4b: two ways to grow</h3>
+<figure><img src="img/scaling.svg" alt="One database under three pressures. Scale up with a bigger machine, or scale out to many machines by copying or splitting the data."><figcaption>One database under three pressures. Scale up with a bigger machine, or scale out to many machines by copying or splitting the data.</figcaption></figure>
+<p>There are two ways to grow:</p>
+<ul><li><strong>Vertical scaling</strong> (scale up): buy a bigger machine. Simple. But there is a biggest machine you can buy, and it can still die.</li><li><strong>Horizontal scaling</strong> (scale out): use many ordinary machines. No one-machine ceiling. But the machines must send each other messages to agree on who holds what, and which copy is up to date. Messages take time, and they can get lost when a machine or the network fails. That agreeing is where most of the hard problems come from.</li></ul>
+<p>Scaling out the data comes in two kinds:</p>
+<ul><li><strong>Replication</strong> keeps copies of the same data on several machines. If one dies, another takes over. Copies can also share the reads.</li><li><strong>Partitioning</strong> splits the data so each machine holds only part. For example, users A to M on one machine and N to Z on another. Partitioning is also called sharding.</li></ul>
+<p>Keeping working when some parts fail is called <strong>fault tolerance</strong>. For data, replication is the main way to get it.</p>
+<h3>Step 5: the goals</h3>
+<p>Almost every technique in this series tries to give you one of three things:</p>
+<ul><li>fast reads,</li><li>fast writes,</li><li>reliability: no lost data, no downtime when a machine fails.</li></ul>
+<p>And every technique pays for its gain somewhere else.</p>
+<p>"Fast" has two meanings. <strong>Latency</strong> is how long one request takes, from asking to getting the answer. The second meaning is <strong>throughput</strong>. It is how much work gets done each second. They differ. A bus that leaves once an hour with 50 people moves more people per hour than a taxi. So its throughput is higher. But you may wait an hour for it, so its latency is worse.</p>
+<h2 id="s4">Worked example: sizing the ticket app</h2>
+<p>Our app has 3 million users a day. Each opens it about 10 times, and each open is one request.</p>
+<figure><img src="img/estimate.svg" alt="Traffic decides how many app servers you need. Data decides the storage."><figcaption>Traffic decides how many app servers you need. Data decides the storage.</figcaption></figure>
+<p><strong>Requests per second.</strong> A day has 24 × 60 × 60 = 86,400 seconds.</p>
+<pre>3,000,000 users × 10 requests = 30,000,000 requests a day
+30,000,000 ÷ 86,400 seconds   ≈ 347, so about 350 requests a second</pre>
+<p>That is the average, and you never size machines for the average. The busiest hour of the day is the <strong>peak</strong>, and it is often 2 to 3 times the average. Planners add a safety margin, so plan for 5 times:</p>
+<pre>350 × 5 = 1,750, so plan for about 1,800 requests a second</pre>
+<p><strong>How many servers.</strong> Say one app server handles 300 requests a second for this app.</p>
+<pre>1,800 ÷ 300 = 6 app servers at peak. Run 8.</pre>
+<p>The 2 extra are <strong>headroom</strong>: spare room for a surprise spike, or for a server that dies.</p>
+<p><strong>How much storage.</strong> Say each user's data, tickets plus a profile photo, takes 1.5 MB. A terabyte (TB) is a million megabytes (MB).</p>
+<pre>3,000,000 users × 1.5 MB = 4,500,000 MB = 4.5 TB
+4.5 TB × 3 copies        = 13.5 TB stored</pre>
+<p>Splitting the data doesn't protect it: if a machine holding part of it dies, that part is gone. That's why you keep copies as well. Why 3 copies, not 2? Replacing a dead machine takes hours. With 2 copies, one failure leaves you a single copy, and one more failure loses data for good. With 3, one failure still leaves two.</p>
+<p>4.5 TB fits on one machine today. Size isn't the issue yet. Growth and write load are: new data arrives every day, and one machine can only take so many writes. That's why big apps end up splitting the data.</p>
+<p><strong>Why not keep it all in RAM?</strong> A power cut would erase it. RAM is also far smaller and costs far more per GB than disk: 13.5 TB won't fit in one server's RAM. The price of disk is speed:</p>
+<pre>SSD vs RAM:        100 µs ÷ 100 ns = 100,000 ns ÷ 100 ns    = 1,000 times slower
+hard drive vs RAM: 10 ms ÷ 100 ns  = 10,000,000 ns ÷ 100 ns = 100,000 times slower</pre>
+<h2 id="s5">What it costs</h2>
+<table><tr><th></th><th></th></tr><tr><td>A separate database buys you</td><td>any server can answer any user, and you can add servers freely</td></tr><tr><td>It costs you</td><td>a network trip to the database for every request the cache can't answer, and the database becomes the limit</td></tr><tr><td>Scaling up</td><td>simple, but has a ceiling and is still one machine that can fail</td></tr><tr><td>Scaling out</td><td>no one-machine ceiling, and survives failures if data is copied, but machines must agree, and copies can disagree</td></tr></table>
+<p>How copies disagree: you rename your saved list. Copy 1 gets the change now. Copy 2 gets it a moment later. For that moment, anyone reading copy 2 sees the old name. If copy 2's machine was down, it misses the change until it catches up. In some setups, a change can be lost for good. Deciding what happens then is the seed of most of this series.</p>
+<h2 id="s6">When to use it, and when not</h2>
+<p>Split into app servers plus one database when:</p>
+<ul><li>more than one server will handle requests,</li><li>the data must outlive any one server,</li><li>or traffic goes up and down.</li></ul>
+<p>Stay on one machine when it handles your load with room to spare. A short outage must also be fine, like for an internal tool used by ten people.</p>
+<h2 id="s7">Mistakes people make</h2>
+<p><strong>"More servers always make the site faster."</strong> Only if the servers are the bottleneck. If every request waits on one overloaded database, more servers just wait too.</p>
+<p><strong>"It's on disk, so it's safe."</strong> A disk survives a power cut. But disks break, and so do whole machines. Real safety needs copies on other machines.</p>
+<p><strong>"Databases don't use RAM."</strong> They use lots of it, for recently used data and for lookup helpers. But the copy that counts must end up on disk.</p>
+<h2 id="s8">Words to know</h2>
+<ul><li><strong>Client</strong>: the program that asks, like a phone app or browser.</li><li><strong>Server</strong>: a computer that waits for requests and answers.</li><li><strong>Application server</strong>: a server that runs your app's code for each request.</li><li><strong>Data center</strong>: a building full of servers in racks.</li><li><strong>Protocol</strong>: shared rules for a conversation between programs. HTTP is the web's protocol, and its verb GET means "fetch this".</li><li><strong>API</strong>: the list of requests a server accepts, and what each returns.</li><li><strong>RAM</strong>: fast memory that forgets everything when the power goes.</li><li><strong>Disk</strong> (HDD or SSD): slower storage that keeps data with the power off.</li><li><strong>Register</strong>: a tiny slot on the processor where it does its maths.</li><li><strong>Load balancer</strong>: spreads requests across servers.</li><li><strong>Single source of truth</strong>: the one place whose data counts.</li><li><strong>Stateless</strong>: keeps nothing that has to last, so any copy can answer any request.</li><li><strong>Cache</strong>: a short-lived copy of popular data, usually in RAM. A <strong>miss</strong> means it doesn't have what you asked for.</li><li><strong>Capacity</strong>: how much work a machine can take before it slows down.</li><li><strong>Bottleneck</strong>: the one part that limits the whole system.</li><li><strong>Single point of failure</strong>: one part whose failure stops everything.</li><li><strong>Vertical / horizontal scaling</strong>: one bigger machine / many machines.</li><li><strong>Replication</strong>: copies of the same data on several machines.</li><li><strong>Partitioning</strong> (sharding): each machine holds part of the data.</li><li><strong>Fault tolerance</strong>: keeps working when some parts fail.</li><li><strong>Latency</strong>: how long one request takes. <strong>Throughput</strong>: how much gets done per second.</li><li><strong>Peak</strong>: the busiest hour. <strong>Headroom</strong>: spare capacity on top.</li></ul>
+<h2 id="s9">Say it in an interview</h2>
+<div class="callout">A big system has clients, stateless app servers and a database. The database is the single source of truth, kept on disk so it survives crashes. App servers scale by adding more, since they hold nothing that has to last. When one database isn't fast, big or reliable enough, you replicate it to survive failures and partition it to grow. Every step adds the problem of keeping machines in agreement.</div><section id="quiz"><h2>Quiz</h2><div class="score" id="score" aria-live="polite"></div><div class="q"><p class="qt"><b>1.</b> Your app runs 4 app servers and each keeps its own data on its own disk. A user saves a ticket, then can't see it. Explain what happened, step by step.</p><textarea aria-label="Your answer to question 1" placeholder="Try it in your own words first (optional)"></textarea><button class="show" type="button" aria-expanded="false">Show answer</button><div class="ans"><div>The load balancer sent the save to one server, say A, which wrote it to its own disk. The next request went to another server, say C, which has never seen it. The data lived on one server, so it depended on which server you reached.</div><div class="mark">Did you get it? <button class="alt ok" data-v="ok" type="button">Got it</button> <button class="alt no" data-v="no" type="button">Not yet</button></div></div></div><div class="q"><p class="qt"><b>2.</b> Why can you add app servers freely but not copies of the database?</p><textarea aria-label="Your answer to question 2" placeholder="Try it in your own words first (optional)"></textarea><button class="show" type="button" aria-expanded="false">Show answer</button><div class="ans"><div>App servers are stateless: they keep nothing that has to last, so any copy can answer. The database holds the data itself. Copies of it would get different writes and give different answers, unless something keeps them in agreement.</div><div class="mark">Did you get it? <button class="alt ok" data-v="ok" type="button">Got it</button> <button class="alt no" data-v="no" type="button">Not yet</button></div></div></div><div class="q"><p class="qt"><b>3.</b> An app has 1.2 million users a day, each making 18 requests. Roughly how many requests a second is that on average? How many should you plan for at peak, using 5 times?</p><textarea aria-label="Your answer to question 3" placeholder="Try it in your own words first (optional)"></textarea><button class="show" type="button" aria-expanded="false">Show answer</button><div class="ans"><div>1,200,000 × 18 = 21,600,000 a day. 21,600,000 ÷ 86,400 = 250 a second on average. At peak, 250 × 5 = 1,250 a second.</div><div class="mark">Did you get it? <button class="alt ok" data-v="ok" type="button">Got it</button> <button class="alt no" data-v="no" type="button">Not yet</button></div></div></div><div class="q"><p class="qt"><b>4.</b> Using your peak from question 3, if one server handles 400 requests a second, how many servers do you need at peak?</p><textarea aria-label="Your answer to question 4" placeholder="Try it in your own words first (optional)"></textarea><button class="show" type="button" aria-expanded="false">Show answer</button><div class="ans"><div>1,250 ÷ 400 = 3.1, so 4 servers at peak, plus headroom, say 5 or 6.</div><div class="mark">Did you get it? <button class="alt ok" data-v="ok" type="button">Got it</button> <button class="alt no" data-v="no" type="button">Not yet</button></div></div></div><div class="q"><p class="qt"><b>5.</b> Name the three pressures on a single database, and which of replication or partitioning answers each.</p><textarea aria-label="Your answer to question 5" placeholder="Try it in your own words first (optional)"></textarea><button class="show" type="button" aria-expanded="false">Show answer</button><div class="ans"><div>Speed: partitioning splits the work across machines, and replication adds copies that can share reads. Size: partitioning, since each machine holds part. Reliability: replication, since a copy takes over when a machine dies.</div><div class="mark">Did you get it? <button class="alt ok" data-v="ok" type="button">Got it</button> <button class="alt no" data-v="no" type="button">Not yet</button></div></div></div><div class="q"><p class="qt"><b>6.</b> A bus and a taxi: which has better throughput, which has better latency, and why?</p><textarea aria-label="Your answer to question 6" placeholder="Try it in your own words first (optional)"></textarea><button class="show" type="button" aria-expanded="false">Show answer</button><div class="ans"><div>The bus has better throughput: it moves 50 people per trip. The taxi has better latency: you leave almost at once instead of waiting up to an hour.</div><div class="mark">Did you get it? <button class="alt ok" data-v="ok" type="button">Got it</button> <button class="alt no" data-v="no" type="button">Not yet</button></div></div></div></section><footer>System Design from Zero · by <a href="https://www.linkedin.com/in/pratham-gupta-4a9798244/">Pratham Gupta</a></footer></main><script>
+(function(){
+  var cards=[].slice.call(document.querySelectorAll('.q'));
+  var score=document.getElementById('score');
+  function update(){
+    var ok=0,done=0;
+    cards.forEach(function(c){var s=c.getAttribute('data-r');if(s){done++;if(s==='ok')ok++;}});
+    score.textContent='Got it: '+ok+' of '+cards.length+(done<cards.length?'  ·  '+(cards.length-done)+' to go':'');
+  }
+  cards.forEach(function(c){
+    var ans=c.querySelector('.ans'),show=c.querySelector('.show');
+    show.addEventListener('click',function(){
+      var open=ans.classList.toggle('open');
+      show.textContent=open?'Hide answer':'Show answer';
+      show.setAttribute('aria-expanded',open);
+    });
+    [].slice.call(c.querySelectorAll('.alt')).forEach(function(b){
+      b.addEventListener('click',function(){
+        var r=b.getAttribute('data-v');
+        c.setAttribute('data-r',r);
+        [].slice.call(c.querySelectorAll('.alt')).forEach(function(x){x.classList.toggle('on',x===b);});
+        update();
+      });
+    });
+  });
+  update();
+})();
+</script></body></html>
